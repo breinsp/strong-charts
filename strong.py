@@ -73,7 +73,7 @@ def get_exercises(workouts):
     return exercises
 
 
-def create_plot(title, x, y, color):
+def create_plot(title, x, y, color, unit='kg', bar=False):
     if len(x) < 5 or len(y) < 5:
         return
     plt.clf()
@@ -81,8 +81,11 @@ def create_plot(title, x, y, color):
     plt.title(title)
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m.%Y'))
     plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-    plt.ylabel('kg')
-    plt.plot(x, y, color=color)
+    plt.ylabel(unit)
+    if bar:
+        plt.bar(x, y, width=5, color='black')
+    else:
+        plt.plot(x, y, color=color)
     plt.gcf().autofmt_xdate()
     plt.savefig(pp, format='pdf')
 
@@ -113,14 +116,15 @@ def overall_volume(workouts):
 
 
 def weekly_volume(workouts):
-    y = []
+    y_vol = []
+    y_cnt = []
 
     index_map = {}
 
     weekly_workouts = {}
     for date in workouts:
         week = date.isocalendar()
-        index = week.year * 52 + week.week
+        index = week.year * 53 + week.week
         if index not in index_map:
             index_map[index] = date
             weekly_workouts[date] = []
@@ -134,10 +138,12 @@ def weekly_volume(workouts):
             for exercise_name in workout:
                 exercises = workout[exercise_name]
                 volume += sum([e['Volume'] for e in exercises])
-        y.append(volume)
+        y_vol.append(volume)
+        y_cnt.append(len(workouts))
     x = [date for date in weekly_workouts]
 
-    create_plot('Weekly volume', x, y, 'purple')
+    create_plot('Weekly volume', x, y_vol, 'purple')
+    create_plot('Weekly training days', x, y_cnt, 'cyan', '', True)
 
 
 def create_pdf(workouts, exercise_names, exercises):
