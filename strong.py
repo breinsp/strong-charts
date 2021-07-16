@@ -109,11 +109,40 @@ def overall_volume(workouts):
             volume += sum([e['Volume'] for e in exercises])
         y.append(volume)
 
-    create_plot('Total volume', x, y, 'green')
+    create_plot('Total volume per training day', x, y, 'green')
+
+
+def weekly_volume(workouts):
+    y = []
+
+    index_map = {}
+
+    weekly_workouts = {}
+    for date in workouts:
+        week = date.isocalendar()
+        index = week.year * 52 + week.week
+        if index not in index_map:
+            index_map[index] = date
+            weekly_workouts[date] = []
+        date_index = index_map[index]
+        weekly_workouts[date_index].append(workouts[date])
+
+    for date in weekly_workouts:
+        workouts = weekly_workouts[date]
+        volume = 0
+        for workout in workouts:
+            for exercise_name in workout:
+                exercises = workout[exercise_name]
+                volume += sum([e['Volume'] for e in exercises])
+        y.append(volume)
+    x = [date for date in weekly_workouts]
+
+    create_plot('Weekly volume', x, y, 'purple')
 
 
 def create_pdf(workouts, exercise_names, exercises):
     overall_volume(workouts)
+    weekly_volume(workouts)
     for exercise_name in exercise_names:
         exercise_to_pdf(exercise_name, exercises[exercise_name])
     pp.close()
