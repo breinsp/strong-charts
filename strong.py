@@ -73,20 +73,44 @@ def get_exercises(workouts):
     return exercises
 
 
-def create_plot(title, x, y, color, unit='kg', bar=False):
+def average_list(list):
+    avgList = []
+
+    avg_range = 5
+
+    for i in range(0, len(list)):
+
+        sum = 0
+        total_weight = 0
+
+        for offset in range(-avg_range, avg_range + 1):
+            weight = avg_range - abs(offset) + 1
+            total_weight += weight
+            offset_index = max(min(i + offset, len(list) - 1), 0)
+            sum += list[offset_index] * weight
+
+        avgList.append(sum / total_weight)
+
+    return avgList
+
+
+def create_plot(title, x, y, color, unit='kg'):
     if len(x) < 5 or len(y) < 5:
         return
+
+    bar_width = max(2, round(50.0 / len(x)))
+
     plt.clf()
     plt.figure(figsize=(10, 5))
     plt.title(title)
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m.%Y'))
     plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
     plt.ylabel(unit)
-    if bar:
-        plt.bar(x, y, width=5, color='black')
-    else:
-        plt.plot(x, y, color=color)
+    plt.bar(x, y, width=bar_width, color='gray')
+    plt.plot(x, average_list(y), linewidth=3, color=color)
+
     plt.gcf().autofmt_xdate()
+    plt.ylim([max(0, min(y) * 0.95), max(y) * 1.05])
     plt.savefig(pp, format='pdf')
 
 
@@ -143,7 +167,7 @@ def weekly_volume(workouts):
     x = [date for date in weekly_workouts]
 
     create_plot('Weekly volume', x, y_vol, 'purple')
-    create_plot('Weekly training days', x, y_cnt, 'cyan', '', True)
+    create_plot('Weekly training days', x, y_cnt, 'red', '')
 
 
 def create_pdf(workouts, exercise_names, exercises):
